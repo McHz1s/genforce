@@ -12,6 +12,11 @@ import lmdb
 import torch
 from torch.utils.data import Dataset
 
+import scipy.io as scio
+import copy
+from collections import defaultdict
+from utils.visualizer import plt_show
+
 from .transforms import progressive_resize_image
 from .transforms import crop_resize_image
 from .transforms import resize_image
@@ -19,8 +24,7 @@ from .transforms import normalize_image
 
 __all__ = ['BaseDataset']
 
-_FORMATS_ALLOWED = ['dir', 'lmdb', 'list', 'zip']
-
+_FORMATS_ALLOWED = ['dir', 'lmdb', 'list', 'zip', 'mat']
 
 class ZipLoader(object):
     """Defines a class to load zip file.
@@ -46,6 +50,65 @@ class ZipLoader(object):
         image_np = np.frombuffer(image_str, np.uint8)
         image = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
         return image
+
+
+def loadMSTAR(data_dir, degree_left=0, degree_right=180):
+    data = scio.loadmat(data_dir)
+    imadata = data['imadata']
+    imalabel = np.squeeze(data['AZ'])
+    imadata = np.transpose(imadata, [2, 0, 1])
+    imadata = np.expand_dims(imadata, axis=1)
+    images = []
+    for i in range(imadata.shape[0]):
+        I = abs(imadata[i, :, :, :])
+        I = (I - np.min(np.min(I))) / (np.max(np.max(I)) - np.min(np.min(I)))
+        I *= 255.
+        if degree_left <= imalabel[i] <= degree_right:
+            images.append(I)
+    images = np.array(images)
+    images = images.astype(np.float32)
+    print(images.shape)
+    return images
+
+
+class MATLoader(object):
+    """Defines a class to load mat file.
+    """
+
+    def __init__(self, file_path, degree_interval_list=[[0, 180]]):
+        self.raw_data_dict = scio.loadmat(file_path)
+        self.post_data_dict = self.process(degree_interval_list)
+
+    def process(self, degree_interval_list):
+        """
+        degree_list: set{list[]}
+        example:
+            {[0,18],[90,120]}: keep mstar image degree in [0,18] or [90,120]
+        """
+        post_data_dict = defaultdict(list)
+        for i, degree in enumerate(self.raw_data_dict['AZ'][0]):
+            if any(list(map(lambda interval: interval[1] >= degree >= interval[0], degree_interval_list))):
+                for key, value in self.raw_data_dict.items():
+                    if key in ['__header__', '__version__', '__globals__']:
+                        continue
+                    if key == 'imadata':
+                        x = value[:, :, i]
+                        x = abs(x)
+                        x = (x - np.min(np.min(x))) / (np.max(np.max(x)) - np.min(np.min(x)))
+                        x = np.expand_dims(x, -1)
+                    else:
+                        x = value[0, i]
+                    post_data_dict[key].append(x)
+        return post_data_dict
+
+    def get_post_mat_data(self):
+        return self.post_data_dict
+
+    def __len__(self):
+        return len(self.post_data_dict['imadata'])
+
+    def get_image(self, idx):
+        return self.post_data_dict['imadata'][idx]
 
 
 class LmdbLoader(object):
@@ -105,6 +168,7 @@ class BaseDataset(Dataset):
     NOTE: The loaded data will be returned as a directory, where there must be
     a key `image`.
     """
+
     def __init__(self,
                  root_dir,
                  resolution,
@@ -115,6 +179,7 @@ class BaseDataset(Dataset):
                  crop_resize_resolution=-1,
                  transform=normalize_image,
                  transform_kwargs=None,
+                 run_mode='train',
                  **_unused_kwargs):
         """Initializes the dataset.
 
@@ -152,6 +217,7 @@ class BaseDataset(Dataset):
         self.crop_resize_resolution = crop_resize_resolution
         self.transform = transform
         self.transform_kwargs = transform_kwargs or dict()
+        self.run_mode = run_mode
 
         if self.data_format == 'dir':
             self.image_paths = sorted(os.listdir(self.root_dir))
@@ -177,6 +243,9 @@ class BaseDataset(Dataset):
                            if ('.jpg' in f or '.jpeg' in f or '.png' in f)]
             self.image_paths = sorted(image_paths)
             self.num_samples = len(self.image_paths)
+        elif self.data_format == 'mat':
+            self.mat_loader = MATLoader(self.root_dir)
+            self.num_samples = len(self.mat_loader)
         else:
             raise NotImplementedError(f'Not implemented data format '
                                       f'`{self.data_format}`!')
@@ -202,11 +271,15 @@ class BaseDataset(Dataset):
         elif self.data_format == 'zip':
             image_path = self.image_paths[idx]
             image = ZipLoader.get_image(self.root_dir, image_path)
+        elif self.data_format == 'mat':
+            image = self.mat_loader.get_image(idx)
         else:
             raise NotImplementedError(f'Not implemented data format '
                                       f'`{self.data_format}`!')
 
         image = image[:, :, ::-1]  # Converts BGR (cv2) to RGB.
+        if self.run_mode == 'metric':
+            cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_GRAY2RGB)
 
         # Transform image.
         if self.crop_resize_resolution > 0:
@@ -225,3 +298,4 @@ class BaseDataset(Dataset):
         data.update({'image': image})
 
         return data
+

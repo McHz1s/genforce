@@ -83,6 +83,8 @@ def progressive_resize_image(image, size):
         height = max(height // 2, size)
         image = cv2.resize(image, (height, height),
                            interpolation=cv2.INTER_LINEAR)
+        if len(image.shape) == 2:
+            image = np.expand_dims(image, axis=-1)
     assert image.shape == (size, size, channel)
     return image
 

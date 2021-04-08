@@ -6,6 +6,7 @@ import os.path
 import cv2
 import numpy as np
 from bs4 import BeautifulSoup
+import matplotlib.pyplot as plt
 
 __all__ = [
     'get_grid_shape', 'get_blank_image', 'load_image', 'save_image',
@@ -706,3 +707,8 @@ class VideoWriter(object):
         NOTE: The input frame is assumed to be with `RGB` channel order.
         """
         self.video.write(frame[:, :, ::-1])
+
+def plt_show(img):
+    plt.imshow(img)
+    plt.show()
+    plt.close()

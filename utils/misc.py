@@ -7,6 +7,9 @@ import subprocess
 from importlib import import_module
 import argparse
 from easydict import EasyDict
+import cv2
+import numpy as np
+from utils.visualizer import plt_show
 
 import torch
 import torch.distributed as dist
@@ -43,6 +46,7 @@ def init_dist(launcher, backend='nccl', **kwargs):
     else:
         raise NotImplementedError(f'Not implemented launcher type: '
                                   f'`{launcher}`!')
+
 
 def bool_parser(arg):
     """Parses an argument to boolean."""
@@ -128,3 +132,30 @@ def update_config(config, new_config):
         temp[hierarchical_keys[-1]] = val
 
     return config
+
+
+def tensor2array(tensor):
+    if not isinstance(tensor, torch.Tensor):
+        return tensor
+    tensor = tensor.detach()
+    if tensor.device.type == 'cuda':
+        tensor = tensor.cpu()
+    return tensor.numpy()
+
+
+def post_process(batch_img_tensor, normalize=False, return_tensor=False):
+    """
+    batch_img_tensor:[N, 1, H, W]
+    """
+    batch_img = tensor2array(batch_img_tensor)
+    re_batch_img = []
+    for idx, output_img in enumerate(batch_img):
+        color_img = 255 * output_img.squeeze()
+        color_img = cv2.cvtColor(color_img.astype(np.uint8), cv2.COLOR_GRAY2RGB)
+        if normalize:
+            color_img = color_img / 255.
+        re_batch_img.append(np.transpose(color_img, [2, 0, 1]))
+    re_batch_img = np.array(re_batch_img)
+    if return_tensor:
+        re_batch_img = torch.tensor(re_batch_img).float().to(batch_img_tensor.device)
+    return re_batch_img

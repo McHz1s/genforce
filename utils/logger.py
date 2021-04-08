@@ -64,10 +64,10 @@ class Logger(object):
             logger_name: Unique name for the logger. (default: `logger`)
         """
         self.logger = logging.getLogger(logger_name)
-        if self.logger.hasHandlers():  # Already existed
-            raise SystemExit(f'Logger `{logger_name}` has already existed!\n'
-                             f'Please use another name, or otherwise the '
-                             f'messages from these two logger may be mixed up.')
+        # if self.logger.hasHandlers():  # Already existed
+        #     raise SystemExit(f'Logger `{logger_name}` has already existed!\n'
+        #                      f'Please use another name, or otherwise the '
+        #                      f'messages from these two logger may be mixed up.')
 
         self.logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter(

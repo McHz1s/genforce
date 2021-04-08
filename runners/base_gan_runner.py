@@ -14,6 +14,7 @@ from metrics.fid import compute_fid
 from utils.visualizer import HtmlPageVisualizer
 from utils.visualizer import save_image
 from utils.visualizer import load_image
+from utils.misc import post_process
 from .base_runner import BaseRunner
 
 __all__ = ['BaseGANRunner']
@@ -50,9 +51,13 @@ class BaseGANRunner(BaseRunner):
     @staticmethod
     def postprocess(images):
         """Post-processes images from `torch.Tensor` to `numpy.ndarray`."""
-        images = images.detach().cpu().numpy()
-        images = (images + 1) * 255 / 2
-        images = np.clip(images + 0.5, 0, 255).astype(np.uint8)
+
+        if images.shape[1] != 1:
+            images = images.detach().cpu().numpy()
+            images = (images + 1) * 255 / 2
+            images = np.clip(images + 0.5, 0, 255).astype(np.uint8)
+        else:
+            images = post_process(images)
         images = images.transpose(0, 2, 3, 1)
         return images
 
@@ -152,6 +157,7 @@ class BaseGANRunner(BaseRunner):
 
         self.logger.close_pbar()
 
+
     def fid(self,
             fid_num,
             z=None,
@@ -202,8 +208,9 @@ class BaseGANRunner(BaseRunner):
                 else:
                     G = self.models['generator']
                 fake_images = G(code)['image']
+                inc_in = post_process(fake_images, normalize=True, return_tensor=True)
                 fake_feature_list.append(
-                    extract_feature(self.inception_model, fake_images))
+                    extract_feature(self.inception_model, inc_in))
             self.logger.update_pbar(task1, batch_size * self.world_size)
         np.save(f'{self.work_dir}/fake_fid_features_{self.rank}.npy',
                 np.concatenate(fake_feature_list, axis=0))
@@ -223,6 +230,7 @@ class BaseGANRunner(BaseRunner):
                         torch.cuda.current_device(), non_blocking=True)
                 with torch.no_grad():
                     real_images = data['image']
+                    real_images = post_process(real_images, normalize=True, return_tensor=True)
                     real_feature_list.append(
                         extract_feature(self.inception_model, real_images))
                 self.logger.update_pbar(task2, batch_size * self.world_size)

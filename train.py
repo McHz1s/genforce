@@ -10,6 +10,7 @@ import numpy as np
 
 import torch
 import torch.distributed as dist
+import datetime
 
 import runners
 from utils.logger import build_logger
@@ -55,7 +56,12 @@ def main():
     # Parse configurations.
     config = parse_config(args.config)
     config = update_config(config, args.options)
-    config.work_dir = args.work_dir
+    os.environ['CUDA_VISIBLE_DEVICES'] = config.gpus
+    timestamp = datetime.datetime.now()
+    version = '%d-%d-%d-%02.0d-%02.0d-%02.0d' % \
+              (timestamp.year, timestamp.month, timestamp.day, timestamp.hour, timestamp.minute, timestamp.second)
+    work_dir = os.path.join(args.work_dir, version)
+    config.work_dir = work_dir
     config.resume_path = args.resume_path
     config.weight_path = args.weight_path
     config.seed = args.seed
