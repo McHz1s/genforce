@@ -45,8 +45,8 @@ class BaseGANRunner(BaseRunner):
         for param_name in avg_params:
             assert param_name in model_params
             avg_params[param_name].data = (
-                avg_params[param_name].data * beta +
-                model_params[param_name].data * (1 - beta))
+                    avg_params[param_name].data * beta +
+                    model_params[param_name].data * (1 - beta))
 
     @staticmethod
     def postprocess(images):
@@ -156,7 +156,6 @@ class BaseGANRunner(BaseRunner):
             shutil.rmtree(temp_dir)
 
         self.logger.close_pbar()
-
 
     def fid(self,
             fid_num,

@@ -82,6 +82,7 @@ class StyleGAN2Generator(nn.Module):
                  repeat_w=True,
                  image_channels=3,
                  final_tanh=False,
+                 final_sigmoid=False,
                  const_input=True,
                  architecture='skip',
                  fused_modulate=True,
@@ -116,6 +117,7 @@ class StyleGAN2Generator(nn.Module):
         self.repeat_w = repeat_w
         self.image_channels = image_channels
         self.final_tanh = final_tanh
+        self.final_sigmoid = final_sigmoid
         self.const_input = const_input
         self.architecture = architecture
         self.fused_modulate = fused_modulate
@@ -147,6 +149,7 @@ class StyleGAN2Generator(nn.Module):
                                          w_space_dim=self.w_space_dim,
                                          image_channels=self.image_channels,
                                          final_tanh=self.final_tanh,
+                                         final_sigmoid=self.final_sigmoid,
                                          const_input=self.const_input,
                                          architecture=self.architecture,
                                          fused_modulate=self.fused_modulate,
@@ -345,6 +348,7 @@ class SynthesisModule(nn.Module):
                  w_space_dim=512,
                  image_channels=3,
                  final_tanh=False,
+                 final_sigmoid=False,
                  const_input=True,
                  architecture='skip',
                  fused_modulate=True,
@@ -361,6 +365,7 @@ class SynthesisModule(nn.Module):
         self.w_space_dim = w_space_dim
         self.image_channels = image_channels
         self.final_tanh = final_tanh
+        self.final_sigmoid = final_sigmoid
         self.const_input = const_input
         self.architecture = architecture
         self.fused_modulate = fused_modulate
@@ -483,7 +488,12 @@ class SynthesisModule(nn.Module):
 
         if self.architecture == 'skip':
             self.upsample = UpsamplingLayer()
-        self.final_activate = nn.Tanh() if final_tanh else nn.Identity()
+        if final_tanh:
+            self.final_activate = nn.Tanh()
+        elif final_sigmoid:
+            self.final_activate = nn.Sigmoid()
+        else:
+            self.final_activate = nn.Identity()
 
     def get_nf(self, res):
         """Gets number of feature maps according to current resolution."""
