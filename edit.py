@@ -38,17 +38,17 @@ def parse_args():
     parser.add_argument('--end_distance', type=float, default=3.0,
                         help='Ending point for manipulation on each semantic. '
                              '(default: %(default)s)')
-    parser.add_argument('--step', type=int, default=180,
+    parser.add_argument('--step', type=int, default=90,
                         help='Manipulation step on each semantic. '
                              '(default: %(default)s)')
     parser.add_argument('--viz_size', type=int, default=256,
                         help='Size of images to visualize on the HTML page. '
                              '(default: %(default)s)')
-    parser.add_argument('--trunc_psi', type=float, default=0.7,
+    parser.add_argument('--trunc_psi', type=float, default=1,
                         help='Psi factor used for truncation. This is '
                              'particularly applicable to StyleGAN (v1/v2). '
                              '(default: %(default)s)')
-    parser.add_argument('--trunc_layers', type=int, default=8,
+    parser.add_argument('--trunc_layers', type=int, default=0,
                         help='Number of layers to perform truncation. This is '
                              'particularly applicable to StyleGAN (v1/v2). '
                              '(default: %(default)s)')
