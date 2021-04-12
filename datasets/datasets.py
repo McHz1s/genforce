@@ -83,7 +83,7 @@ class MATLoader(object):
         """
         degree_list: set{list[]}
         example:
-            {[0,18],[90,120]}: keep mstar image degree in [0,18] or [90,120]
+            [{][0,18],[90,120]]: keep mstar image degree in [0,18] or [90,120]
         """
         post_data_dict = defaultdict(list)
         for i, degree in enumerate(self.raw_data_dict['AZ'][0]):
@@ -180,6 +180,7 @@ class BaseDataset(Dataset):
                  transform=normalize_image,
                  transform_kwargs=None,
                  run_mode='train',
+                 degree_interval_list=[[0, 180]],
                  **_unused_kwargs):
         """Initializes the dataset.
 
@@ -244,7 +245,7 @@ class BaseDataset(Dataset):
             self.image_paths = sorted(image_paths)
             self.num_samples = len(self.image_paths)
         elif self.data_format == 'mat':
-            self.mat_loader = MATLoader(self.root_dir)
+            self.mat_loader = MATLoader(self.root_dir, degree_interval_list=degree_interval_list)
             self.num_samples = len(self.mat_loader)
         else:
             raise NotImplementedError(f'Not implemented data format '

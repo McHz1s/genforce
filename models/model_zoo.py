@@ -298,6 +298,35 @@ MODEL_ZOO = {
         resolution=512,
         url='https://mycuhk-my.sharepoint.com/:u:/g/personal/1155082926_link_cuhk_edu_hk/EYSnUsxU8KJFuMHhZm-JLWoB0nHxdlbrLHNZ_Qkoe3b9LA?e=Ycjp5A&download=1',
     ),
+    'stylegan_mstar128_z128': dict(
+        gan_type='stylegan',
+        resolution=128,
+        z_space_dim=128, w_space_dim=128,
+        image_channels=1, final_sigmoid=True
+    ),
+    'stylegan_mstar128_z32': dict(
+        gan_type='stylegan',
+        resolution=128,
+        z_space_dim=32, w_space_dim=32,
+        image_channels=1, final_sigmoid=True
+    ),
+    'stylegan_mstar128_z256': dict(
+        gan_type='stylegan',
+        resolution=128,
+        z_space_dim=256, w_space_dim=256,
+        image_channels=1, final_sigmoid=True
+    ),
+    'stylegan_mstar128_z1024': dict(
+        gan_type='stylegan',
+        resolution=128,
+        z_space_dim=1024, w_space_dim=1024,
+        image_channels=1, final_sigmoid=True
+    ),
+    'stylegan_mstar128_z512': dict(
+        gan_type='stylegan',
+        resolution=128,
+        image_channels=1, final_sigmoid=True
+    ),
 }
 
 # pylint: enable=line-too-long
