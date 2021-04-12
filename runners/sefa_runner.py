@@ -68,3 +68,15 @@ class SefaRunner(object):
                                      image=image)
                     vizer_2.set_cell(sam_id * (num_sem + 1) + sem_id + 1, col_id,
                                      image=image)
+
+    def save(self):
+        prefix = (f'{cfg..model_name}_'
+                  f'N{num_sam}_K{num_sem}_L{cfg..layer_idx}_seed{cfg..seed}')
+        timestamp = datetime.datetime.now()
+        version = '%d-%d-%d-%02.0d-%02.0d-%02.0d' % \
+                  (timestamp.year, timestamp.month, timestamp.day, timestamp.hour, timestamp.minute, timestamp.second)
+        save_dir = os.path.join(cfg..save_dir, cfg..checkpoint_path.split('/')[-3],
+                                f's{cfg..start_distance}e{cfg..end_distance}', version)
+        os.makedirs(save_dir)
+        vizer_1.save(os.path.join(save_dir, f'{prefix}_sample_first.html'))
+        vizer_2.save(os.path.join(save_dir, f'{prefix}_semantic_first.html'))

@@ -13,22 +13,36 @@ from models import parse_gan_type
 from utils.misc import to_tensor, post_process, load_generator, factorize_weight, HtmlPageVisualizer
 from skimage.measure import compare_ssim
 
+class sample_info(object):
+    def __init__(self):
+        self.semantic_list = []
+        self.best_ssim = 0
+        self.best_id = 0
+
+    def add(self, img_list, ssim_list):
+        self.semantic_list.append({'img_list': img_list, 'ssim_list': ssim_list})
+        ssim = sum(ssim_list)/len(ssim_list)
+        if ssim >= self.best_ssim:
+            self.best_ssim, self.best_id = ssim, len(self.semantic_list) - 1
+        return ssim
+
 class Sefa_info(object):
-    def __init__(self, distance, values):
+    def __init__(self, distance, values, sem_num, sam_num):
         self.distance = distance
         self.values = values
-        self.sample_list = []
-        self.best_id = [0, 0]
+        self.sample_list = [sample_info() for _ in range(sam_num)]
+        self.best_id = 0
         self.best_ssim = 0
+        self.sem_num = sem_num
+        self.sam_num = sam_num
 
-    def add_sample(self, result_dict):
+    def add(self, sam_id, img_list, ssim_list):
         """
         result_dict: {img_list:[], ssim_list:[], ssim:float}
         """
-        self.sample_list.append(result_dict)
-        if result_dict['ssim'] > self.best_ssim:
-            self.best_ssim = result_dict['ssim']
-            self.best_id = [len(self.sample_list) - 1, ]
+        ssim = self.sample_list[sam_id].add(img_list, ssim_list)
+        if ssim > self.best_ssim:
+            self.best_id, self.best_ssim = sam_id, ssim
 
 class Sefa(object):
     def __init__(self, cfg, generator, gt_imgs):
@@ -56,18 +70,12 @@ class Sefa(object):
         self.gt_imgs = gt_imgs
 
     def inference(self):
-        """
-        re_dict = {'distance':[](len=step), 'values':[](len=sem_num),
-        'sample_list':[{'semantic_img_list':[img_num], 'ssim':[img_num]}](len=sample_num)}
-        """
-        re_dict = {'distance':self.distances, 'values': self.values}
-        sample_list = []
-        best_id, best_ssim = [0, 0], 0
+        re_sefa_info = Sefa_info(self.distances, self.values, self.num_sem, self.num_sam)
         for sam_id in tqdm(range(self.num_sam), desc='Sample ', leave=False):
             code = self.codes[sam_id:sam_id + 1]
             for sem_id in tqdm(range(self.num_sem), desc='Semantic ', leave=False):
-                result = defaultdict(list)
                 boundary = self.boundaries[sem_id:sem_id + 1]
+                img_list, ssim_list = [], []
                 for col_id, d in enumerate(self.distances, start=1):
                     temp_code = code.copy()
                     if self.gan_type == 'pggan':
@@ -79,22 +87,8 @@ class Sefa(object):
                     image = post_process(image, transpose=True)[0]
                     gt_image = self.gt_imgs[col_id]
                     ssim = compare_ssim(image, gt_image, multichannel=True)
-                    result['semantic_img_list'].append(image)
-                    result['ssim'].append(ssim)
-                if sum(result['ssim']) / len(self.distances) > best_ssim:
-                    best_id = [sam_id, sem_id]
-            re_dict[]
-        re_dict.update({})
-        return
+                    img_list.append(image)
+                    ssim_list.append(ssim)
+                re_sefa_info.add(sam_id, img_list, ssim_list)
+        return re_sefa_info
 
-    def save(self):
-        prefix = (f'{cfg..model_name}_'
-                  f'N{num_sam}_K{num_sem}_L{cfg..layer_idx}_seed{cfg..seed}')
-        timestamp = datetime.datetime.now()
-        version = '%d-%d-%d-%02.0d-%02.0d-%02.0d' % \
-                  (timestamp.year, timestamp.month, timestamp.day, timestamp.hour, timestamp.minute, timestamp.second)
-        save_dir = os.path.join(cfg..save_dir, cfg..checkpoint_path.split('/')[-3],
-                                f's{cfg..start_distance}e{cfg..end_distance}', version)
-        os.makedirs(save_dir)
-        vizer_1.save(os.path.join(save_dir, f'{prefix}_sample_first.html'))
-        vizer_2.save(os.path.join(save_dir, f'{prefix}_semantic_first.html'))
