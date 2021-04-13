@@ -78,6 +78,7 @@ class MATLoader(object):
     def __init__(self, file_path, degree_interval_list=[[0, 180]]):
         self.raw_data_dict = scio.loadmat(file_path)
         self.post_data_dict = self.process(degree_interval_list)
+        self.fetch_img_mode = 'gray'
 
     def process(self, degree_interval_list):
         """
@@ -96,19 +97,31 @@ class MATLoader(object):
                         x = abs(x)
                         x = (x - np.min(np.min(x))) / (np.max(np.max(x)) - np.min(np.min(x)))
                         x = np.expand_dims(x, -1)
+                        color_img = cv2.cvtColor((255 * x).astype(np.uint8), cv2.COLOR_GRAY2RGB)
+                        post_data_dict['gray_imadata'].append(x)
+                        post_data_dict['color_imadata'].append(color_img)
                     else:
                         x = value[0, i]
-                    post_data_dict[key].append(x)
+                        post_data_dict[key].append(x)
         return post_data_dict
+
+    def sort(self, reverse=False):
+        for key, item in self.post_data_dict.items():
+            if key == 'AZ':
+                continue
+            gather = list(zip(item, self.post_data_dict['AZ']))
+            gather.sort(key=lambda x: x[1], reverse=reverse)
+            self.post_data_dict[key] = [x for x, _ in gather]
+        self.post_data_dict['AZ'].sort(reverse=reverse)
 
     def get_post_mat_data(self):
         return self.post_data_dict
 
     def __len__(self):
-        return len(self.post_data_dict['imadata'])
+        return len(self.post_data_dict[f'{self.fetch_img_mode}_imadata'])
 
-    def get_image(self, idx):
-        return self.post_data_dict['imadata'][idx]
+    def __getitem__(self, idx):
+        return self.post_data_dict[f'{self.fetch_img_mode}_imadata'][idx]
 
 
 class LmdbLoader(object):
@@ -273,7 +286,7 @@ class BaseDataset(Dataset):
             image_path = self.image_paths[idx]
             image = ZipLoader.get_image(self.root_dir, image_path)
         elif self.data_format == 'mat':
-            image = self.mat_loader.get_image(idx)
+            image = self.mat_loader[idx]
         else:
             raise NotImplementedError(f'Not implemented data format '
                                       f'`{self.data_format}`!')

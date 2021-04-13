@@ -11,7 +11,7 @@ resolution = 128
 batch_size = 24
 val_batch_size = 64
 total_img = 25000_000
-gpus = '9'
+gpus = '6'
 
 # Training dataset is repeated at the beginning to avoid loading dataset
 # repeatedly at the end of each epoch. This can save some I/O time.
@@ -19,9 +19,9 @@ data = dict(
     num_workers=4,
     repeat=500,
     train=dict(root_dir='/data3/lyz/dataset/mstar/TRAINT72_132INF.MAT', data_format='MAT',
-               resolution=resolution, transform=None, degree_interval_list=[[2*x, 2*x+1] for x in range(0, 44)]),
+               resolution=resolution, transform=None, degree_interval_list=[[10*x + 5, 10*x + 10] for x in range(9, 18)]),
     val=dict(root_dir='/data3/lyz/dataset/mstar/TRAINT72_132INF.MAT', data_format='MAT',
-             resolution=resolution, run_mode='metric', degree_interval_list=[[0, 90]], transform=None),
+             resolution=resolution, run_mode='metric', degree_interval_list=[[90, 180]], transform=None),
 )
 
 controllers = dict(

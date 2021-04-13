@@ -202,29 +202,22 @@ def postprocess(images, min_val=-1.0, max_val=1.0):
     return images
 
 
-def load_generator(checkpoint_path, model_name):
+def load_generator(checkpoint_path, generator_config):
     """Loads pre-trained generator.
 
     Args:
-        model_name: Name of the model. Should be a key in `models.MODEL_ZOO`.
-
+        checkpoint_path: Path to checkpoint.
+        generator_config: ~
     Returns:
         A generator, which is a `torch.nn.Module`, with pre-trained weights
             loaded.
-
-    Raises:
-        KeyError: If the input `model_name` is not in `models.MODEL_ZOO`.
     """
-    if model_name not in MODEL_ZOO:
-        raise KeyError(f'Unknown model name `{model_name}`!')
-
-    model_config = MODEL_ZOO[model_name].copy()
-    if 'url' in model_config:
-        url = model_config.pop('url')  # URL to download model if needed.
+    if 'url' in generator_config:
+        url = generator_config.pop('url')  # URL to download model if needed.
 
     # Build generator.
-    print(f'Building generator for model `{model_name}` ...')
-    generator = build_generator(**model_config)
+    print(f'Building generator ...')
+    generator = build_generator(**generator_config)
     print(f'Finish building generator.')
 
     # Load pre-trained weights.

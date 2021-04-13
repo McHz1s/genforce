@@ -3,7 +3,9 @@ import os
 from copy import deepcopy
 import json
 from utils.misc import HtmlPageVisualizer, load_generator
-from sefa.sefa import Sefa
+from sefa.sefa import Sefa, SefaInfo, SefaSampleInfo
+from datasets.datasets import MATLoader
+import datetime
 
 
 class SefaRunner(object):
@@ -18,65 +20,71 @@ class SefaRunner(object):
         self.logger.print(config_str + '\n')
         with open(os.path.join(self.work_dir, 'config.json'), 'w') as f:
             json.dump(self.config, f, indent=4)
-        self.generator = load_generator(configs.checkpoint_path, configs.model_name)
+        self.generator = load_generator(configs.checkpoint_path, configs.generator_config)
+        self.mat_loader = MATLoader(configs.gt_data_cfg.root_dir, configs.gt_data_cfg.degree_interval_list)
+        self.mat_loader.fetch_img_mode = 'color'
+        self.mat_loader.sort()
+        # todo now step should be the same with gt img to conduct metircs
+        if self.config.sefa_cfg.step > len(self.mat_loader):
+            self.config.sefa_cfg.step = len(self.mat_loader)
+        self.best_ssim, self.best_attampt, self.best_sample, self.best_semantic = 0, 0, 0, 0
 
     def sefa_cfg_generator(self):
         cfg = deepcopy(self.config.sefa_cfg)
-        distance_range, seed_range = cfg.distance_range, cfg.seed_range
+        dis_start, dis_end, seed_range = cfg.start_distance, cfg.end_distance, cfg.seed_range
         for i, seed in enumerate(seed_range):
-            start, end = distance_range
+            start, end = dis_start, dis_end
             while start < end:
                 yield seed, start, end
                 start += 0.5
                 end -= 0.5
 
-    def run_step(self, sefa_cfg):
-        sefa = Sefa(sefa_cfg, self.generator, self.gt_img)
-        output_dict = sefa.inference()
+    def run_step(self, sefa_cfg, attampt_id):
+        sefa = Sefa(sefa_cfg, self.generator, self.mat_loader)
+        output_sefa_info = sefa.inference()
+        self.save_step(output_sefa_info, attampt_id, sefa_cfg)
+
+    def save_step(self, sefa_info: SefaInfo, attampt_id, sefa_cfg):
+        self.logger.info(f'Attampt {attampt_id}:')
+        sam_id, sem_id, ssim = sefa_info.get_best_sample_and_semantic()
+        self.logger.info(f'best_id: Sample_id:{sam_id}, Semantic_id: {sem_id}, SSIM: {ssim}')
+        self.logger.info(f'Seed:{sefa_cfg.seed}, start_dis: {sefa_cfg.start_distance}, end_dis: {sefa_cfg.end_distance}')
+        if self.best_ssim < ssim:
+            self.best_ssim, self.best_attampt, self.best_sample, self.best_semantic = \
+                ssim, attampt_id, sam_id, sem_id
+        vizer = self.vis(sefa_info)
+        save_path = os.path.join(self.config.work_dir, f'Attampt_{attampt_id}')
+        os.makedirs(save_path)
+        vizer.save(os.path.join(save_path, 'visulizer.html'))
 
     def run(self):
-        for seed, start, end in self.sefa_cfg_generator():
+        for attampt_id, (seed, start, end) in enumerate(self.sefa_cfg_generator()):
             sefa_cfg = deepcopy(self.config.sefa_cfg)
             sefa_cfg.seed, sefa_cfg.start_distance, sefa_cfg.end_distance = seed, start, end
-            self.run_step(sefa_cfg)
+            self.run_step(sefa_cfg, attampt_id)
+        self.logger.info('Finish')
+        self.logger.info(f'Best: Attampt_id:{self.best_attampt} '
+                         f'Sample_id:{self.best_sample}, '
+                         f'Semantic_id: {self.best_semantic}, '
+                         f'SSIM: {self.best_ssim}')
 
-    def vis(self, sefa_info):
+    def vis(self, sefa_info: SefaInfo):
         num_sam = len(sefa_info)
-        num_sem = len(sefa_info['semantic_list'])
-        step = len(sefa_info_list[0]['semantic_list'][0])
-        vizer = HtmlPageVisualizer(num_rows=num_sam * (num_sem + 1), num_cols=step + 1, viz_size=self.config.viz_size)
-        for sem_id in range(num_sem):
-            value = sefa_info['values'][sem_id]
-            vizer.set_cell(sem_id, 0,
-                           text=f'Semantic {sem_id:03d}<br>({value:.3f})<br>SSIM:{sefa_info["SSIM_list"][sem_id]}',
+        num_sem = len(sefa_info[0])
+        step = len(sefa_info[0][0]['img_list'])
+        vizer = HtmlPageVisualizer(num_rows=num_sam * (num_sem + 1),
+                                   num_cols=step + 1, viz_size=self.config.viz_size)
+        for sam_id in range(num_sam):
+            vizer.set_cell(sam_id * (num_sem + 1), 0,
+                           text=f'Sample {sam_id:03d}',
                            highlight=True)
+            for sem_id in range(num_sem):
+                value = sefa_info.values[sem_id]
+                vizer.set_cell(sam_id * (num_sem + 1) + sem_id + 1, 0,
+                               text=f'Semantic {sem_id:03d}<br>({value:.3f})<br>SSIM:{sefa_info[sam_id][sem_id]["ssim"]}')
+                for col_id, (img, ssim) in \
+                        enumerate(zip(sefa_info[sam_id][sem_id]['img_list'], sefa_info[sam_id][sem_id]['ssim_list']),
+                                  start=1):
+                    vizer.set_cell(sam_id * (num_sem + 1) + sem_id + 1, col_id, image=img, text=f'{ssim:.4f}')
+        return vizer
 
-        for sam_id in tqdm(range(num_sam), desc='Sample ', leave=False):
-            code = codes[sam_id:sam_id + 1]
-            for sem_id in tqdm(range(num_sem), desc='Semantic ', leave=False):
-                boundary = boundaries[sem_id:sem_id + 1]
-                for col_id, d in enumerate(distances, start=1):
-                    temp_code = code.copy()
-                    if gan_type == 'pggan':
-                        temp_code += boundary * d
-                        image = generator(to_tensor(temp_code))['image']
-                    elif gan_type in ['stylegan', 'stylegan2']:
-                        temp_code[:, layers, :] += boundary * d
-                        image = generator.synthesis(to_tensor(temp_code))['image']
-                    image = post_process(image, transpose=True)[0]
-                    vizer_1.set_cell(sem_id * (num_sam + 1) + sam_id + 1, col_id,
-                                     image=image)
-                    vizer_2.set_cell(sam_id * (num_sem + 1) + sem_id + 1, col_id,
-                                     image=image)
-
-    def save(self):
-        prefix = (f'{cfg..model_name}_'
-                  f'N{num_sam}_K{num_sem}_L{cfg..layer_idx}_seed{cfg..seed}')
-        timestamp = datetime.datetime.now()
-        version = '%d-%d-%d-%02.0d-%02.0d-%02.0d' % \
-                  (timestamp.year, timestamp.month, timestamp.day, timestamp.hour, timestamp.minute, timestamp.second)
-        save_dir = os.path.join(cfg..save_dir, cfg..checkpoint_path.split('/')[-3],
-                                f's{cfg..start_distance}e{cfg..end_distance}', version)
-        os.makedirs(save_dir)
-        vizer_1.save(os.path.join(save_dir, f'{prefix}_sample_first.html'))
-        vizer_2.save(os.path.join(save_dir, f'{prefix}_semantic_first.html'))
