@@ -19,7 +19,8 @@ data = dict(
     num_workers=4,
     repeat=500,
     train=dict(root_dir='/data3/lyz/dataset/mstar/TRAINT72_132INF.MAT', data_format='MAT',
-               resolution=resolution, transform=None, degree_interval_list=[[10*x + 5, 10*x + 10] for x in range(0, 9)]),
+               resolution=resolution, transform=None,
+               degree_interval_list=[[2*x + 1, 2*x + 2] for x in range(0, 44)]),
     val=dict(root_dir='/data3/lyz/dataset/mstar/TRAINT72_132INF.MAT', data_format='MAT',
              resolution=resolution, run_mode='metric', degree_interval_list=[[0, 90]], transform=None),
 )
@@ -46,7 +47,7 @@ modules = dict(
     ),
     generator=dict(
         model=dict(gan_type=gan_type, resolution=resolution, image_channels=1,
-                   z_space_dim=8, w_space_dim=8,
+                   z_space_dim=32, w_space_dim=32,
                    final_sigmoid=True),
         lr=dict(lr_type='FIXED'),
         opt=dict(opt_type='Adam', base_lr=1e-3, betas=(0.0, 0.99)),
