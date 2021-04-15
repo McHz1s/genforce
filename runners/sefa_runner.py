@@ -53,7 +53,8 @@ class SefaRunner(object):
             self.best_ssim, self.best_attampt, self.best_sample, self.best_semantic = \
                 ssim, attampt_id, sam_id, sem_id
         vizer = self.vis(sefa_info)
-        save_path = os.path.join(self.config.work_dir, f'Attampt_{attampt_id}')
+        save_path = os.path.join(self.config.work_dir, f'Attampt_{attampt_id:3d}_'
+                                                       f'seed{sefa_cfg.seed}_start{sefa_cfg.start_distance}_end{sefa_cfg.end_distance}')
         os.makedirs(save_path)
         vizer.save(os.path.join(save_path, 'visulizer.html'))
 
