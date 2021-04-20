@@ -23,7 +23,7 @@ class SefaRunner(object):
         self.generator = load_generator(configs.checkpoint_path, configs.generator_config)
         self.mat_loader = MATLoader(configs.gt_data_cfg.root_dir, configs.gt_data_cfg.degree_interval_list)
         self.mat_loader.fetch_img_mode = 'color'
-        self.mat_loader.sort()
+        self.mat_loader.sort(reverse=True)
         # todo now step should be the same with gt img to conduct metircs
         if self.config.sefa_cfg.step > len(self.mat_loader):
             self.config.sefa_cfg.step = len(self.mat_loader)

@@ -6,17 +6,17 @@ and `num_workers`.
 """
 
 viz_size = 128
-gpus = '6'
+gpus = '2'
 
 work_dir = '/data3/lyz/cache/sefa'
-checkpoint_path = '/data3/lyz/cache/genforce/stylegan_mstar_2z_degree1-2/2021-4-15-19-08-18/checkpoint_iter050000.pth'
+checkpoint_path = '/data3/lyz/cache/genforce/stylegan_mstar_24z_degree1-2/2021-4-14-16-48-35/checkpoint_iter140000.pth'
 gt_data_cfg = dict(root_dir='/data3/lyz/dataset/mstar/TRAINT72_132INF.MAT',
                    degree_interval_list=[[0, 90]])
 
 generator_config = dict(
     gan_type='stylegan',
     resolution=128,
-    z_space_dim=2, w_space_dim=2,
+    z_space_dim=24, w_space_dim=24,
     image_channels=1, final_sigmoid=True
 )
 
