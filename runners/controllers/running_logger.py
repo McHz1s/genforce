@@ -93,7 +93,7 @@ class RunningLogger(BaseController):
                     self.tensorboard_writer.add_scalar(
                         name.replace('lr_', 'learning_rate/'), value)
                 else:
-                    self.tensorboard_writer.add_scalar(name, value)
+                    self.tensorboard_writer.add_scalar(name, value, runner.iter)
 
         # Clear running stats.
         runner.running_stats.clear()
