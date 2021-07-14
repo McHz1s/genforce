@@ -82,7 +82,7 @@ class Logger(object):
 
         # Save log message with all levels into log file if needed.
         if logfile_name:
-            os.makedirs(work_dir, exist_ok=True)
+            os.system(f'mkdir -p {work_dir}')
             file_stream = open(os.path.join(work_dir, logfile_name), 'a')
             file_handler = logging.StreamHandler(stream=file_stream)
             file_handler.setLevel(logging.DEBUG)

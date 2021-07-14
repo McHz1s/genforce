@@ -18,9 +18,9 @@ gpus = '8'
 data = dict(
     num_workers=8,
     repeat=500,
-    train=dict(root_dir='/data3/lyz/dataset/mstar/TRAINT72_132INF.MAT', data_format='MAT',
+    train=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
                resolution=resolution, transform=None),
-    val=dict(root_dir='/data3/lyz/dataset/mstar/TRAINT72_132INF.MAT', data_format='MAT',
+    val=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
              resolution=resolution, run_mode='metric', transform=None),
 )
 

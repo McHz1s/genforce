@@ -53,6 +53,7 @@ class PGGANGenerator(nn.Module):
                  z_space_dim=512,
                  image_channels=3,
                  final_tanh=False,
+                 final_sigmoid=False,
                  label_size=0,
                  fused_scale=False,
                  use_wscale=True,
@@ -76,6 +77,7 @@ class PGGANGenerator(nn.Module):
         self.z_space_dim = z_space_dim
         self.image_channels = image_channels
         self.final_tanh = final_tanh
+        self.final_sigmoid = final_sigmoid
         self.label_size = label_size
         self.fused_scale = fused_scale
         self.use_wscale = use_wscale
@@ -145,7 +147,12 @@ class PGGANGenerator(nn.Module):
                 f'ToRGB_lod{self.final_res_log2 - res_log2}/bias')
 
         self.upsample = UpsamplingLayer()
-        self.final_activate = nn.Tanh() if self.final_tanh else nn.Identity()
+        if final_tanh:
+            self.final_activate = nn.Tanh()
+        elif final_sigmoid:
+            self.final_activate = nn.Sigmoid()
+        else:
+            self.final_activate = nn.Identity()
 
     def get_nf(self, res):
         """Gets number of feature maps according to current resolution."""

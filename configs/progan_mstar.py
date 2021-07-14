@@ -5,13 +5,13 @@ All settings are particularly used for one replica (GPU), such as `batch_size`
 and `num_workers`.
 """
 
-runner_type = 'StyleGANRunner'
-gan_type = 'stylegan'
+runner_type = 'ProGANRunner'
+gan_type = 'pggan'
 resolution = 128
 batch_size = 24
 val_batch_size = 64
 total_img = 25000_000
-gpus = '5'
+gpus = '7'
 
 # Training dataset is repeated at the beginning to avoid loading dataset
 # repeatedly at the end of each epoch. This can save some I/O time.
@@ -34,7 +34,7 @@ controllers = dict(
     ),
     Snapshoter=dict(every_n_iters=500, first_iter=True, num=200),
     FIDEvaluator=dict(every_n_iters=5000, first_iter=True, num=50000),
-    Checkpointer=dict(every_n_iters=10000, first_iter=True),
+    Checkpointer=dict(every_n_iters=1450, first_iter=True),
 )
 
 modules = dict(
@@ -47,7 +47,7 @@ modules = dict(
     ),
     generator=dict(
         model=dict(gan_type=gan_type, resolution=resolution, image_channels=1,
-                   z_space_dim=32, w_space_dim=32,
+                   z_space_dim=32,
                    final_sigmoid=True),
         lr=dict(lr_type='FIXED'),
         opt=dict(opt_type='Adam', base_lr=1e-3, betas=(0.0, 0.99)),

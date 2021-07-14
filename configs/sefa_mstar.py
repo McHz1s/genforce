@@ -10,7 +10,7 @@ gpus = '5'
 
 work_dir = '/data3/lyz/cache/sefa'
 checkpoint_path = '/data3/lyz/cache/genforce/stylegan_mstar_28z_degree1-2/2021-4-17-19-14-54/checkpoint_iter070000.pth'
-gt_data_cfg = dict(root_dir='/data3/lyz/dataset/mstar/TRAINT72_132INF.MAT',
+gt_data_cfg = dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT',
                    degree_interval_list=[[0, 90]])
 
 generator_config = dict(
