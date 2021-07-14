@@ -8,7 +8,7 @@ and `num_workers`.
 runner_type = 'ProGANRunner'
 gan_type = 'pggan'
 resolution = 128
-batch_size = 24
+batch_size = 32
 val_batch_size = 64
 total_img = 25000_000
 gpus = '7'
