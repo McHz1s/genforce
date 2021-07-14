@@ -8,7 +8,7 @@ and `num_workers`.
 runner_type = 'ProGANRunner'
 gan_type = 'pggan'
 resolution = 128
-batch_size = 32
+batch_size = 16
 val_batch_size = 64
 total_img = 25000_000
 gpus = '7'
@@ -30,7 +30,7 @@ controllers = dict(
     ProgressScheduler=dict(
         every_n_iters=1, init_res=16, minibatch_repeats=4,
         lod_training_img=150000, lod_transition_img=150000,
-        batch_size_schedule=dict(res4=64, res8=128, res16=128, res32=64),
+        batch_size_schedule=dict(res16=128, res32=64, res64=32, res128=16),
     ),
     Snapshoter=dict(every_n_iters=500, first_iter=True, num=200),
     FIDEvaluator=dict(every_n_iters=5000, first_iter=True, num=50000),

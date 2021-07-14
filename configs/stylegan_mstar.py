@@ -8,10 +8,10 @@ and `num_workers`.
 runner_type = 'StyleGANRunner'
 gan_type = 'stylegan'
 resolution = 128
-batch_size = 24
+batch_size = 16
 val_batch_size = 64
 total_img = 25000_000
-gpus = '5'
+gpus = '7'
 
 # Training dataset is repeated at the beginning to avoid loading dataset
 # repeatedly at the end of each epoch. This can save some I/O time.
@@ -20,17 +20,17 @@ data = dict(
     repeat=500,
     train=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
                resolution=resolution, transform=None,
-               degree_interval_list=[[0, 90]]),
+               degree_interval_list=[[90, 180]]),
     val=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
-             resolution=resolution, run_mode='metric', degree_interval_list=[[0, 90]], transform=None),
+             resolution=resolution, run_mode='metric', degree_interval_list=[[90, 180]], transform=None),
 )
 
 controllers = dict(
     RunningLogger=dict(every_n_iters=10),
     ProgressScheduler=dict(
         every_n_iters=1, init_res=16, minibatch_repeats=4,
-        lod_training_img=150000, lod_transition_img=150000,
-        batch_size_schedule=dict(res4=64, res8=128, res16=128, res32=64),
+        lod_training_img=100000, lod_transition_img=100000,
+        batch_size_schedule=dict(res16=32, res32=32, res64=32, res128=16),
     ),
     Snapshoter=dict(every_n_iters=500, first_iter=True, num=200),
     FIDEvaluator=dict(every_n_iters=5000, first_iter=True, num=50000),
@@ -51,7 +51,7 @@ modules = dict(
                    final_sigmoid=True),
         lr=dict(lr_type='FIXED'),
         opt=dict(opt_type='Adam', base_lr=1e-3, betas=(0.0, 0.99)),
-        kwargs_train=dict(w_moving_decay=0.995, style_mixing_prob=0.9, trunc_psi=1.0, trunc_layers=0),
+        kwargs_train=dict(w_moving_decay=0.995, style_mixing_prob=0.9, trunc_psi=1.0, trunc_layers=0, randomize_noise=False),
         kwargs_val=dict(trunc_psi=1.0, trunc_layers=0, randomize_noise=False),
         g_smooth_img=10_000,
     )
