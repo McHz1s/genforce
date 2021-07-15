@@ -20,9 +20,9 @@ data = dict(
     repeat=500,
     train=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
                resolution=resolution, transform=None,
-               degree_interval_list=[[90, 180]]),
+               degree_interval_list=[[180, 270]]),
     val=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
-             resolution=resolution, run_mode='metric', degree_interval_list=[[90, 180]], transform=None),
+             resolution=resolution, run_mode='metric', degree_interval_list=[[180, 270]], transform=None),
 )
 
 controllers = dict(

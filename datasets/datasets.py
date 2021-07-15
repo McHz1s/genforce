@@ -67,7 +67,6 @@ def loadMSTAR(data_dir, degree_left=0, degree_right=180):
             images.append(I)
     images = np.array(images)
     images = images.astype(np.float32)
-    print(images.shape)
     return images
 
 
