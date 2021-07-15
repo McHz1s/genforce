@@ -19,9 +19,9 @@ data = dict(
     num_workers=8,
     repeat=500,
     train=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
-               resolution=resolution, transform=None, degree_interval_list=[[90, 180]]),
+               resolution=resolution, transform=None, degree_interval_list=[[270, 360]]),
     val=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
-             resolution=resolution, run_mode='metric', transform=None, degree_interval_list=[[90, 180]]),
+             resolution=resolution, run_mode='metric', transform=None, degree_interval_list=[[270, 360]]),
 )
 
 controllers = dict(
