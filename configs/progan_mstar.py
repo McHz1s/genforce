@@ -20,17 +20,17 @@ data = dict(
     repeat=500,
     train=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
                resolution=resolution, transform=None,
-               degree_interval_list=[[0, 90]]),
+               degree_interval_list=[[180, 270]]),
     val=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
-             resolution=resolution, run_mode='metric', degree_interval_list=[[0, 90]], transform=None),
+             resolution=resolution, run_mode='metric', degree_interval_list=[[180, 270]], transform=None),
 )
 
 controllers = dict(
     RunningLogger=dict(every_n_iters=10),
     ProgressScheduler=dict(
         every_n_iters=1, init_res=16, minibatch_repeats=4,
-        lod_training_img=150000, lod_transition_img=150000,
-        batch_size_schedule=dict(res16=128, res32=64, res64=32, res128=16),
+        lod_training_img=100000, lod_transition_img=100000,
+        batch_size_schedule=dict(res16=64, res32=64, res64=32, res128=16),
     ),
     Snapshoter=dict(every_n_iters=500, first_iter=True, num=200),
     FIDEvaluator=dict(every_n_iters=5000, first_iter=True, num=50000),

@@ -24,7 +24,7 @@ __all__ = ['StyleGAN2Generator']
 _RESOLUTIONS_ALLOWED = [8, 16, 32, 64, 128, 256, 512, 1024]
 
 # Initial resolution.
-_INIT_RES = 4
+_INIT_RES = 16
 
 # Architectures allowed.
 _ARCHITECTURES_ALLOWED = ['resnet', 'skip', 'origin']
