@@ -360,7 +360,7 @@ class BaseRunner(object):
             raise IOError(f'Checkpoint `{filepath}` does not exist!')
         device = torch.cuda.current_device()
         map_location = lambda storage, location: storage.cuda(device)
-        checkpoint = torch.load(filepath, map_location=map_location)
+        checkpoint = torch.load(filepath, map_location='cpu')
         # Load models.
         if 'models' not in checkpoint:
             checkpoint = {'models': checkpoint}

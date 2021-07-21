@@ -9,7 +9,7 @@ __all__ = ['StyleGAN2Runner']
 
 
 class StyleGAN2Runner(BaseGANRunner):
-    """Defines the runner for StyleGAN."""
+    """Defines the runner for StyleGAN2."""
 
     def __init__(self, config, logger):
         super().__init__(config, logger)
@@ -27,14 +27,6 @@ class StyleGAN2Runner(BaseGANRunner):
             f'Gs_beta', log_format='.4f', log_strategy='CURRENT')
 
     def train_step(self, data, **train_kwargs):
-        # Set level-of-details.
-        G = self.get_module(self.models['generator'])
-        D = self.get_module(self.models['discriminator'])
-        Gs = self.get_module(self.models['generator_smooth'])
-        # G.synthesis.lod.data.fill_(self.lod)
-        # D.lod.data.fill_(self.lod)
-        # Gs.synthesis.lod.data.fill_(self.lod)
-
         # Update discriminator.
         self.set_model_requires_grad('discriminator', True)
         self.set_model_requires_grad('generator', False)
@@ -60,13 +52,3 @@ class StyleGAN2Runner(BaseGANRunner):
             g_loss.backward()
             self.optimizers['generator'].step()
 
-    def load(self, **kwargs):
-        super().load(**kwargs)
-        G = self.get_module(self.models['generator'])
-        D = self.get_module(self.models['discriminator'])
-        Gs = self.get_module(self.models['generator_smooth'])
-        if kwargs['running_metadata']:
-            lod = G.synthesis.lod.cpu().tolist()
-            assert lod == D.lod.cpu().tolist()
-            assert lod == Gs.synthesis.lod.cpu().tolist()
-            self.lod = lod

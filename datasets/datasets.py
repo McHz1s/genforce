@@ -74,10 +74,11 @@ class MATLoader(object):
     """Defines a class to load mat file.
     """
 
-    def __init__(self, file_path, degree_interval_list=[[0, 180]]):
+    def __init__(self, file_path, degree_interval_list=[[0, 180]], label_size=None):
         self.raw_data_dict = scio.loadmat(file_path)
         self.post_data_dict = self.process(degree_interval_list)
         self.fetch_img_mode = 'gray'
+        self.label_size = label_size
 
     def process(self, degree_interval_list):
         """
@@ -120,7 +121,12 @@ class MATLoader(object):
         return len(self.post_data_dict[f'{self.fetch_img_mode}_imadata'])
 
     def __getitem__(self, idx):
-        return self.post_data_dict[f'{self.fetch_img_mode}_imadata'][idx]
+        if self.label_size is None:
+            label = None
+        else:
+            label = np.zeros(self.label_size)
+            label[int(self.post_data_dict['AZ'][idx])] = 1
+        return self.post_data_dict[f'{self.fetch_img_mode}_imadata'][idx], label
 
 
 class LmdbLoader(object):
@@ -193,6 +199,7 @@ class BaseDataset(Dataset):
                  transform_kwargs=None,
                  run_mode='train',
                  degree_interval_list=[[0, 180]],
+                 label_size=None,
                  **_unused_kwargs):
         """Initializes the dataset.
 
@@ -257,7 +264,7 @@ class BaseDataset(Dataset):
             self.image_paths = sorted(image_paths)
             self.num_samples = len(self.image_paths)
         elif self.data_format == 'mat':
-            self.mat_loader = MATLoader(self.root_dir, degree_interval_list=degree_interval_list)
+            self.mat_loader = MATLoader(self.root_dir, degree_interval_list=degree_interval_list, label_size=label_size)
             self.num_samples = len(self.mat_loader)
         else:
             raise NotImplementedError(f'Not implemented data format '
@@ -285,7 +292,9 @@ class BaseDataset(Dataset):
             image_path = self.image_paths[idx]
             image = ZipLoader.get_image(self.root_dir, image_path)
         elif self.data_format == 'mat':
-            image = self.mat_loader[idx]
+            image, label = self.mat_loader[idx]
+            if label is not None:
+                data['label'] = label
         else:
             raise NotImplementedError(f'Not implemented data format '
                                       f'`{self.data_format}`!')
