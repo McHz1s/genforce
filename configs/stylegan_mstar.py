@@ -11,7 +11,7 @@ resolution = 128
 batch_size = 16
 val_batch_size = 64
 total_img = 25000_000
-gpus = '7'
+gpus = '5'
 
 # Training dataset is repeated at the beginning to avoid loading dataset
 # repeatedly at the end of each epoch. This can save some I/O time.

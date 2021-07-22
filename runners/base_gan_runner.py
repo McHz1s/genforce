@@ -131,7 +131,9 @@ class BaseGANRunner(BaseRunner):
                     G = self.models['generator_smooth']
                 else:
                     G = self.models['generator']
-                images = G(code, **self.G_kwargs_val)['image']
+                label_size = self.config.modules['generator']['model']['label_size']
+                label = torch.randn(code.shape[0], label_size) if label_size is not None else None
+                images = G(code, label, **self.G_kwargs_val)['image']
                 images = self.postprocess(images)
             for sub_idx, image in zip(sub_indices, images):
                 save_image(os.path.join(temp_dir, f'{sub_idx:06d}.jpg'), image)
@@ -206,7 +208,9 @@ class BaseGANRunner(BaseRunner):
                     G = self.models['generator_smooth']
                 else:
                     G = self.models['generator']
-                fake_images = G(code)['image']
+                label_size = self.config.modules['generator']['model']['label_size']
+                label = torch.randn(code.shape[0], label_size) if label_size is not None else None
+                fake_images = G(code, label)['image']
                 inc_in = post_process(fake_images, normalize=True, return_tensor=True)
                 fake_feature_list.append(
                     extract_feature(self.inception_model, inc_in))
