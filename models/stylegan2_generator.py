@@ -264,6 +264,7 @@ class MappingModule(nn.Module):
                                  f'latent codes ({z.shape[0]}) and '
                                  f'`label_size` equals to {self.label_size}!\n'
                                  f'But `{label.shape}` is received!')
+            label = label.float()
             embedding = torch.matmul(label, self.label_weight)
             z = torch.cat((z, embedding), dim=1)
 

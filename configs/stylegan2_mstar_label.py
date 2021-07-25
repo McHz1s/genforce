@@ -19,9 +19,9 @@ data = dict(
     num_workers=0,
     repeat=500,
     train=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
-               resolution=resolution, transform=None, degree_interval_list=[[0, 90]]),
+               resolution=resolution, transform=None, degree_interval_list=[[0, 90]], label_size=90),
     val=dict(root_dir='/home/lyz/dataset/MSTAR/TRAINT72_132INF.MAT', data_format='MAT',
-             resolution=resolution, run_mode='metric', transform=None, degree_interval_list=[[0, 90]]),
+             resolution=resolution, run_mode='metric', transform=None, degree_interval_list=[[0, 90]], label_size=90),
 )
 
 controllers = dict(
@@ -38,7 +38,7 @@ controllers = dict(
 
 modules = dict(
     discriminator=dict(
-        model=dict(gan_type=gan_type, resolution=resolution, image_channels=1),
+        model=dict(gan_type=gan_type, resolution=resolution, image_channels=1, label_size=90),
         lr=dict(lr_type='FIXED'),
         opt=dict(opt_type='Adam', base_lr=1e-3, betas=(0.0, 0.99)),
         kwargs_train=dict(),
@@ -46,7 +46,7 @@ modules = dict(
     ),
     generator=dict(
         model=dict(gan_type=gan_type, resolution=resolution, image_channels=1, final_sigmoid=True,
-                   z_space_dim=32, w_space_dim=32),
+                   z_space_dim=32, w_space_dim=32, label_size=90),
         lr=dict(lr_type='FIXED'),
         opt=dict(opt_type='Adam', base_lr=1e-3, betas=(0.0, 0.99)),
         kwargs_train=dict(w_moving_decay=0.995, style_mixing_prob=0.9, trunc_psi=1.0, trunc_layers=0, randomize_noise=False),
